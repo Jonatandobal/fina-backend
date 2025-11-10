@@ -1,10 +1,13 @@
 // src/server.js
 require('dotenv').config();
+require('express-async-errors'); // Permite usar async/await sin try-catch en routes
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
+const { errorHandler } = require('./shared/middlewares/errorHandler');
+const logger = require('./shared/utils/logger');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,10 +37,15 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: {
       health: '/health',
+      afip: '/api/afip',
       docs: '/api-docs (próximamente)'
     }
   });
 });
+
+// AFIP Routes
+const afipRoutes = require('./modules/afip/afip.routes');
+app.use('/api/afip', afipRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -47,18 +55,12 @@ app.use((req, res) => {
   });
 });
 
-// Error handler
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
-});
+// Error handler (debe ir al final)
+app.use(errorHandler);
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`
+  logger.info(`
   ╔═══════════════════════════════════════╗
   ║   🚀 FINA Backend API                ║
   ║   Port: ${PORT}                          ║
