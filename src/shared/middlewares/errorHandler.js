@@ -1,4 +1,4 @@
-﻿// src/shared/middlewares/errorHandler.js
+// src/shared/middlewares/errorHandler.js
 const logger = require('../utils/logger');
 
 class AppError extends Error {

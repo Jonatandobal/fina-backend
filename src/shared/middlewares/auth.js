@@ -1,4 +1,4 @@
-﻿// src/shared/middlewares/auth.js
+// src/shared/middlewares/auth.js
 const { AppError } = require('./errorHandler');
 const supabase = require('../../config/supabase');
 

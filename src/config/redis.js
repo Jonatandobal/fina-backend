@@ -1,4 +1,4 @@
-﻿// src/config/redis.js
+// src/config/redis.js
 const Redis = require('ioredis');
 
 let redisClient = null;
