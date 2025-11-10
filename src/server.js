@@ -22,12 +22,21 @@ app.use(morgan('combined'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({
+  const health = {
     status: 'ok',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    version: '1.0.0'
-  });
+    version: '1.0.0',
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    env_check: {
+      supabase: !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY),
+      redis: !!process.env.REDIS_URL,
+      jwt: !!process.env.JWT_SECRET
+    }
+  };
+
+  res.status(200).json(health);
 });
 
 // Root endpoint
@@ -59,7 +68,7 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   logger.info(`
   ╔═══════════════════════════════════════╗
   ║   🚀 FINA Backend API                ║
@@ -68,6 +77,37 @@ app.listen(PORT, '0.0.0.0', () => {
   ║   Health: http://localhost:${PORT}/health ║
   ╚═══════════════════════════════════════╝
   `);
+});
+
+// Graceful shutdown
+const gracefulShutdown = (signal) => {
+  logger.info(`\n${signal} received. Starting graceful shutdown...`);
+
+  server.close(() => {
+    logger.info('HTTP server closed');
+    process.exit(0);
+  });
+
+  // Force shutdown after 10 seconds
+  setTimeout(() => {
+    logger.error('Could not close connections in time, forcefully shutting down');
+    process.exit(1);
+  }, 10000);
+};
+
+// Handle shutdown signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught errors
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception:', error);
+  gracefulShutdown('uncaughtException');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  gracefulShutdown('unhandledRejection');
 });
 
 module.exports = app;
