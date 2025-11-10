@@ -1,4 +1,4 @@
-﻿// src/config/afip.js
+// src/config/afip.js
 const Afip = require('@afipsdk/afip.js');
 const path = require('path');
 const fs = require('fs').promises;
