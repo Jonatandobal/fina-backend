@@ -26,6 +26,47 @@ class AfipController {
   }
 
   /**
+   * POST /api/afip/invoice/create
+   * Crear factura electrónica
+   */
+  async createInvoice(req, res, next) {
+    try {
+      const userId = req.userId;
+      const invoiceData = req.body;
+
+      logger.info(`Creating invoice for user: ${userId}`, { invoiceData });
+
+      const result = await afipService.createInvoice(userId, invoiceData);
+
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/afip/credit-note/create
+   * Crear nota de crédito
+   */
+  async createCreditNote(req, res, next) {
+    try {
+      const userId = req.userId;
+      const { factura_original_id, motivo } = req.body;
+
+      logger.info(`Creating credit note for user: ${userId}`, { factura_original_id });
+
+      const result = await afipService.createCreditNote(userId, {
+        factura_original_id,
+        motivo
+      });
+
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * GET /api/afip/ultimo-comprobante
    * Obtener último número de comprobante
    */

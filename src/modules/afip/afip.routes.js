@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const afipController = require('./afip.controller');
 const { authenticate } = require('../../shared/middlewares/auth');
-const { validateCuit } = require('./afip.validators');
+const { validateCuit, validateInvoice, validateCreditNote } = require('./afip.validators');
 
 // Todas las rutas requieren autenticación
 router.use(authenticate);
@@ -14,6 +14,20 @@ router.use(authenticate);
  * @access Private
  */
 router.post('/padron/validate', validateCuit, afipController.validateCuit);
+
+/**
+ * @route POST /api/afip/invoice/create
+ * @desc Crear factura electrónica A/B/C
+ * @access Private
+ */
+router.post('/invoice/create', validateInvoice, afipController.createInvoice);
+
+/**
+ * @route POST /api/afip/credit-note/create
+ * @desc Crear nota de crédito
+ * @access Private
+ */
+router.post('/credit-note/create', validateCreditNote, afipController.createCreditNote);
 
 /**
  * @route GET /api/afip/ultimo-comprobante
